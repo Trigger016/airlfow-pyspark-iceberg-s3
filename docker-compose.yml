@@ -143,18 +143,18 @@ services:
       - "5432:5432"
     restart: always
 
-# # Analytic Layer
-#   trino:
-#     <<: *common-env
-#     container_name: trino
-#     image: trinodb/trino:440
-#     ports:
-#       - "8082:8080"
-#     volumes:
-#       - ./trino/catalog:/etc/trino/catalog
-#     depends_on:
-#       - minio
-#       - rest
+# Analytic Layer
+  trino:
+    <<: *common-env
+    container_name: trino
+    image: trinodb/trino:440
+    ports:
+      - "8082:8080"
+    volumes:
+      - ./trino/catalog:/etc/trino/catalog
+    depends_on:
+      - minio
+      - rest
 
 # Airflow Layer (Airflow 3 with LocalExecutor)
   airflow-api-server:
