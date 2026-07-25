@@ -14,6 +14,6 @@ airflow_data
 .env
 00-user.sql
 docker-compose.yml.old
-trino
 warehouse
 metadata
+*.properties
