@@ -1,0 +1,27 @@
+
+spark.sql.extensions                               org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions
+spark.sql.catalogImplementation                    in-memory
+
+# default catalog
+spark.sql.defaultCatalog                           remote
+
+# catalog
+spark.sql.catalog.remote                           org.apache.iceberg.spark.SparkCatalog
+spark.sql.catalog.remote.type                      rest
+spark.sql.catalog.remote.uri                       http://iceberg-rest:8181
+spark.sql.catalog.remote.warehouse                 s3a://warehouse/
+
+# FileIO
+spark.sql.catalog.remote.io-impl                   org.apache.iceberg.aws.s3.S3FileIO
+spark.sql.catalog.remote.s3.endpoint               http://${MINIO_HOST}:9000
+spark.sql.catalog.remote.s3.path-style-access      true
+spark.sql.catalog.remote.s3.access-key-id          ${MINIO_ACCESS_ID}
+spark.sql.catalog.remote.s3.secret-access-key      ${MINIO_ACCESS_SECRET}
+
+# S3a
+spark.hadoop.fs.s3a.endpoint                       http://${MINIO_HOST}:9000
+spark.hadoop.fs.s3a.access.key                     ${MINIO_ACCESS_ID}
+spark.hadoop.fs.s3a.secret.key                     ${MINIO_ROOT_PASSWORD}
+spark.hadoop.fs.s3a.path.style.access              true
+spark.hadoop.fs.s3a.impl                           org.apache.hadoop.fs.s3a.S3AFileSystem
+spark.hadoop.fs.s3a.connection.ssl.enabled         false

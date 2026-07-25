@@ -1,0 +1,10 @@
+apache-airflow[amazon]
+apache-airflow-providers-apache-spark>=6.0.0
+apache-airflow-providers-postgres
+apache-airflow-providers-fab
+astronomer-cosmos
+dbt-core
+dbt-trino
+psycopg2-binary
+python-dotenv
+pyspark==3.5.8

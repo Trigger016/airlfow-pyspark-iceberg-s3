@@ -1,0 +1,87 @@
+CREATE USER ${ORACLE_USERNAME} IDENTIFIED BY "${ORACLE_PASSWORD}";
+ALTER USER ${ORACLE_USERNAME} QUOTA UNLIMITED ON USERS;
+
+-- Grant necessary privileges to allow logging in and creating tables
+GRANT CONNECT, RESOURCE TO ${ORACLE_USERNAME};
+GRANT CREATE SESSION, CREATE TABLE TO ${ORACLE_USERNAME};
+
+-- Create customers first (No foreign key dependencies)
+CREATE TABLE ${ORACLE_USERNAME}.customers (
+    customer_id VARCHAR2(15) PRIMARY KEY,
+    full_name VARCHAR2(100),
+    nik VARCHAR2(16),
+    phone VARCHAR2(15),
+    email VARCHAR2(80),
+    city VARCHAR2(30),
+    province VARCHAR2(30),
+    registration_date DATE,
+    kyc_status VARCHAR2(15) CHECK (kyc_status IN ('VERIFIED', 'PENDING', 'REJECTED')),
+    risk_score NUMBER(5,2),
+    segment VARCHAR2(20) CHECK (segment IN ('MASS', 'EMERGING_AFFLUENT', 'AFFLUENT', 'HIGH_NET_WORTH'))
+);
+
+-- Create accounts (Depends on customers)
+CREATE TABLE ${ORACLE_USERNAME}.accounts (
+    account_id VARCHAR2(20) PRIMARY KEY,
+    customer_id VARCHAR2(15),
+    account_type VARCHAR2(20) CHECK (account_type IN ('SAVINGS', 'LOAN', 'CREDIT_CARD', 'INVESTMENT')),
+    product_name VARCHAR2(50),
+    opened_date DATE,
+    status VARCHAR2(15) CHECK (status IN ('ACTIVE', 'DORMANT', 'CLOSED', 'SUSPENDED')),
+    balance NUMBER(15,2) DEFAULT 0,
+    credit_limit NUMBER(15,2),
+    interest_rate NUMBER(5,4),
+    CONSTRAINT fk_customer FOREIGN KEY (customer_id) REFERENCES ${ORACLE_USERNAME}.customers(customer_id)
+);
+
+-- Create transactions (Depends on accounts)
+CREATE TABLE ${ORACLE_USERNAME}.transactions (
+    txn_id VARCHAR2(25) PRIMARY KEY,
+    account_id VARCHAR2(20),
+    txn_date TIMESTAMP,
+    txn_type VARCHAR2(20) CHECK (txn_type IN ('DEBIT', 'CREDIT', 'TRANSFER_IN', 'TRANSFER_OUT', 'PAYMENT', 'FEE')),
+    amount NUMBER(15,2),
+    merchant_category VARCHAR2(30),
+    channel VARCHAR2(20) CHECK (channel IN ('MOBILE_APP', 'WEB', 'QRIS', 'ATM_NETWORK', 'AUTO_DEBIT')),
+    reference_id VARCHAR2(30),
+    status VARCHAR2(15) CHECK (status IN ('COMPLETED', 'PENDING', 'FAILED', 'REVERSED')),
+    CONSTRAINT fk_transactions_account FOREIGN KEY (account_id) REFERENCES ${ORACLE_USERNAME}.accounts(account_id)
+);
+
+-- Create credit_scores (Depends on customers)
+CREATE TABLE ${ORACLE_USERNAME}.credit_scores (
+    score_id VARCHAR2(20) PRIMARY KEY,
+    customer_id VARCHAR2(15),
+    score_date DATE,
+    model_version VARCHAR2(10),
+    credit_score NUMBER CHECK (credit_score BETWEEN 300 AND 850),
+    probability_of_default NUMBER(5,4) CHECK (probability_of_default BETWEEN 0 AND 1),
+    features_used CLOB,
+    CONSTRAINT fk_scores_customer FOREIGN KEY (customer_id) REFERENCES ${ORACLE_USERNAME}.customers(customer_id)
+);
+
+-- Create app_events (Depends on customers)
+CREATE TABLE ${ORACLE_USERNAME}.app_events (
+    event_id VARCHAR2(30) PRIMARY KEY,
+    customer_id VARCHAR2(15),
+    event_timestamp TIMESTAMP,
+    event_type VARCHAR2(30),
+    screen_name VARCHAR2(50),
+    session_id VARCHAR2(30),
+    device_type VARCHAR2(15) CHECK (device_type IN ('ANDROID', 'IOS', 'WEB')),
+    app_version VARCHAR2(10),
+    CONSTRAINT fk_app_events_customer FOREIGN KEY (customer_id) REFERENCES ${ORACLE_USERNAME}.customers(customer_id)
+);
+
+-- Create support_tickets (Depends on customers)
+CREATE TABLE ${ORACLE_USERNAME}.support_tickets (
+    ticket_id VARCHAR2(15) PRIMARY KEY,
+    customer_id VARCHAR2(15),
+    created_at TIMESTAMP,
+    resolved_at TIMESTAMP,
+    category VARCHAR2(30) CHECK (category IN ('TRANSACTION', 'ACCOUNT', 'CARD', 'LOAN', 'GENERAL')),
+    priority VARCHAR2(10) CHECK (priority IN ('LOW', 'MEDIUM', 'HIGH', 'URGENT')),
+    satisfaction_score NUMBER CHECK (satisfaction_score BETWEEN 1 AND 5),
+    channel VARCHAR2(15) CHECK (channel IN ('IN_APP', 'EMAIL', 'CALL', 'SOCIAL_MEDIA')),
+    CONSTRAINT fk_tickets_customer FOREIGN KEY (customer_id) REFERENCES ${ORACLE_USERNAME}.customers(customer_id)
+);
