@@ -119,7 +119,7 @@ services:
       dockerfile: oracle.Dockerfile
     container_name: oracle
     environment:
-      - IMPORT_FROM_VOLUME=false
+      - IMPORT_FROM_VOLUME=true
       - ENABLE_OWNERSHIP_FIX=true
     ports:
       - 1521:1521
